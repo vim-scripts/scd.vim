@@ -4,10 +4,10 @@
 a Unix shell, [Vim](http://www.vim.org/) or [IPython](http://ipython.org/).
 
 `scd` is a Z shell (Zsh) script for changing to any directory with a few
-keystrokes.  `scd` keeps history of the visited directories, which
+keystrokes.  scd keeps history of the visited directories, which
 serves as an index of the known paths.  The directory index is updated after
 every `cd` command in the shell and can be also filled manually by running
-`scd -a`.  To switch to some directory, `scd` needs few fragments of the
+`scd -a`.  To switch to some directory, scd needs few fragments of the
 desired path to match with the index.  A selection menu is displayed in case
 of several matches, with a preference given to recently visited paths.  scd
 can create permanent directory aliases, which directly map to the target path.
@@ -156,7 +156,7 @@ scd xray
    `ipy_scd` for every IPython session, modify
    `.../profile_default/ipython_config.py` so that it contains
    ```Python
-   c.InteractiveShellApp.extensions = ['ipy_scd']
+   c.TerminalIPythonApp.extensions = ['ipy_scd']
    ```
 
    In IPython 0.10, which does not support extensions, import `ipy_scd` from
@@ -189,7 +189,6 @@ scd xray
 </dl>
 
 # ENVIRONMENT
------------
 
 <dl><dt>
 SCD_HISTFILE</dt><dd>
@@ -208,8 +207,7 @@ SCD_MEANLIFE</dt><dd>
 
 SCD_THRESHOLD</dt><dd>
     threshold for cumulative directory likelihood.  Directories with
-    lower likelihood are excluded unless they are the only match to
-    scd patterns.
+    a lower likelihood compared to the best match are excluded (0.005).
     </dd><dt>
 
 SCD_SCRIPT</dt><dd>
