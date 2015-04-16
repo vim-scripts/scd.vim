@@ -48,8 +48,16 @@ and configuration details.
     git clone https://github.com/pavoljuhas/scd.vim.git
     ```
 
-    Otherwise, download the ZIP archive and expand it in the `~/.vim/`
-    directory:
+    Another option of installing scd.vim is to create a symbolic link
+    in the Vim plugin directory
+
+    ```sh
+    git clone https://github.com/pavoljuhas/scd.vim.git
+    ln -si $PWD/scd.vim/plugin/scd.vim ~/.vim/plugin/
+    ```
+
+    If you don't use git download the ZIP archive and
+    expand it in the `~/.vim/` directory:
 
     ```sh
     cd ~/.vim
@@ -78,13 +86,17 @@ the `scd` script location can be also specified in .vimrc as
 let g:scd_command = '/path/to/scd'
 ```
 
+When Vim is set to use zsh for system commands `:set shell=/bin/zsh`, scd
+aliases can be expanded in Vim command mode, as in `:e ~foo/file.txt`.
+Allow this by adding the following line to `~/.zshenv`
+```sh
+if [[ -s ~/.scdalias.zsh ]]; then source ~/.scdalias.zsh; fi
+```
 
 ## Repository remarks
 
-This Git repository is a mirror of the
-[scd.vim](https://github.com/pavoljuhas/smart-change-directory/tree/scd.vim)
-branch in the upstream
+This repository derives from the upstream
 [smart-change-directory.git](https://github.com/pavoljuhas/smart-change-directory)
-project.  All these repositories are fairly equal, except that scd.vim is the
-easiest to use as a Vim plugin and the smart-change-directory.git master
-should have the latest sources.
+project with files reorganized according to the Vim plugin conventions.
+The content of both repositories is otherwise fairly equal, except that
+smart-change-directory.git should have the latest sources.

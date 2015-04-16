@@ -22,7 +22,7 @@ scd [options] [pattern1 pattern2 ...]
 
 <dl><dt>
 -a, --add</dt><dd>
-  add specified directories to the directory index.</dd><dt>
+  add current or specified directories to the directory index.</dd><dt>
 
 --unindex</dt><dd>
   remove current or specified directories from the index.</dd><dt>
@@ -128,6 +128,7 @@ scd xray
    ```Python
    import ipy_scd
    ipy_scd.scd_executable = '/path/to/scd'
+   ```
 
 ## Examples
 

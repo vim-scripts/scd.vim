@@ -15,7 +15,7 @@ recent or frequently visited directories as found in the directory index.
 Display a selection menu in case of multiple matches.
 
 Options:
-  -a, --add         add specified directories to the directory index.
+  -a, --add         add current or specified directories to the index.
   --unindex         remove current or specified directories from the index.
   -r, --recursive   apply options --add or --unindex recursively.
   --alias=ALIAS     create alias for the current or specified directory and
@@ -56,6 +56,7 @@ setopt extendedhistory extendedglob noautonamedirs brace_ccl
 # process command line options
 zmodload -i zsh/zutil
 zmodload -i zsh/datetime
+zmodload -i zsh/parameter
 zparseopts -D -- a=opt_add -add=opt_add -unindex=opt_unindex \
     r=opt_recursive -recursive=opt_recursive \
     -alias:=opt_alias -unalias=opt_unalias \
@@ -108,16 +109,15 @@ fi
 
 # undefine directory alias
 if [[ -n $opt_unalias ]]; then
-    if [[ -n $1 && ! -d $1 ]]; then
-        print -u2 "'$1' is not a directory."
+    d=${1:-$PWD}
+    if [[ ${+nameddirs[$d]} == 0 && -d $d ]]; then
+        _scd_Y19oug_abspath d $d
+    fi
+    a=${(k)nameddirs[$d]:-${(k)nameddirs[(r)$d]}}
+    if [[ -z $a ]]; then
+        print -u2 "'$1' is neither a directory alias nor an aliased path."
         $EXIT 1
     fi
-    _scd_Y19oug_abspath a ${1:-$PWD}
-    a=$(print -rD ${a})
-    if [[ $a != [~][^/]## ]]; then
-        $EXIT
-    fi
-    a=${a#[~]}
     # unalias in the current shell, update alias file if successful
     if unhash -d -- $a 2>/dev/null && [[ -r $SCD_ALIAS ]]; then
         (
@@ -125,7 +125,7 @@ if [[ -n $opt_unalias ]]; then
             hash -dr
             source $SCD_ALIAS
             unhash -d -- $a 2>/dev/null &&
-            hash -dL >| $SCD_ALIAS
+                hash -dL >| $SCD_ALIAS
         )
     fi
     $EXIT $?
@@ -163,7 +163,16 @@ _scd_Y19oug_compress() {
 # Rewrite directory index if it is at least 20% oversized
 if [[ -s $SCD_HISTFILE ]] && \
 (( $(wc -l <$SCD_HISTFILE) > 1.2 * $SCD_HISTSIZE )); then
+    # compress repeated entries
     m=( ${(f)"$(_scd_Y19oug_compress $SCD_HISTFILE)"} )
+    # purge non-existent directories
+    m=( ${(f)"$(
+        for a in $m; do
+            if [[ -d ${a#*;} ]]; then print -r -- $a; fi
+        done
+        )"}
+    )
+    # cut old entries if still oversized
     if [[ $#m -gt $SCD_HISTSIZE ]]; then
         m=( ${m[-$SCD_HISTSIZE,-1]} )
     fi
@@ -188,13 +197,8 @@ _scd_Y19oug_record() {
 }
 
 if [[ -n $opt_add ]]; then
-    for d; do
-        if [[ ! -d $d ]]; then
-            print -u2 "Directory '$d' does not exist."
-            $EXIT 2
-        fi
-    done
-    _scd_Y19oug_abspath m ${*:-$PWD}
+    m=( ${^${argv:-$PWD}}(N-/) )
+    _scd_Y19oug_abspath m ${m}
     _scd_Y19oug_record $m
     if [[ -n $opt_recursive ]]; then
         for d in $m; do
@@ -211,6 +215,7 @@ if [[ -n $opt_unindex ]]; then
     if [[ ! -s $SCD_HISTFILE ]]; then
         $EXIT
     fi
+    argv=( ${argv:-$PWD} )
     # expand existing directories in the argument list
     for i in {1..$#}; do
         if [[ -d ${argv[i]} ]]; then
@@ -235,7 +240,7 @@ if [[ -n $opt_unindex ]]; then
             }
         }
         { print $0 }
-        ' $SCD_HISTFILE ${*:-$PWD} )" || $EXIT $?
+        ' $SCD_HISTFILE $* )" || $EXIT $?
     : >| ${SCD_HISTFILE}
     [[ ${#m} == 0 ]] || print -r -- $m >> ${SCD_HISTFILE}
     $EXIT
